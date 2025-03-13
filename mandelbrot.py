@@ -9,9 +9,12 @@ def get_escape_time(c: complex, max_iterations: int) -> int | None:
     :param max_iterations: int
     :return: int or None
     """
-    escape_val = None
-
-    return escape_val
+    z = 0 #Iteration begins at z_0 = 0
+    for escape_val in range(0, max_iterations+1): #Runs loop from 0 to max_iterations
+        z = z**2 + c #Iteration
+        if abs(z) > 2: #If value escapes
+            return escape_val
+    return None #If value never escapes
 
 def get_complex_grid(top_left: complex, bottom_right: complex, step: float) -> np.ndarray:
     """
