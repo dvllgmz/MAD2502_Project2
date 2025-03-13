@@ -25,7 +25,17 @@ def get_complex_grid(top_left: complex, bottom_right: complex, step: float) -> n
     :param step: float
     :return: numpy array
     """
-    complex_grid = np.arange(None)
+    #Setting bounds
+    col_start = top_left.real #col = real numbers
+    col_end = bottom_right.real
+    row_start = top_left.imag #row = imaginary numbers
+    row_end = bottom_right.imag
+
+    real_range = np.arange(col_start, col_end, step) #range of real numbers
+    imaginary_range = np.arange(row_start, row_end, -step) #range of imaginary numbers
+
+    real_arr, imaginary_arr = np.meshgrid(real_range, imaginary_range) #creates grid with both real and imaginary
+    complex_grid = real_arr + 1j * imaginary_arr
 
     return complex_grid
 
