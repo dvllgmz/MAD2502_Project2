@@ -47,8 +47,22 @@ def get_escape_time_color_arr(c_arr: np.ndarray, max_iterations: int) -> np.ndar
     :param max_iterations: int
     :return: numpy array
     """
+    # make zero array and alk the other supporting arrays
+    zeros = np.zeros_like(c_arr, dtype=complex)
+    escapeTimes = np.full(c_arr.shape, max_iterations + 1, dtype=int)
+    mask = np.ones(c_arr.shape, dtype=bool)
 
-    return None
+    for i in range(max_iterations + 1):
+        zeros[mask] = zeros[mask] ** 2 + c_arr[mask]  # apply the mandelbrot iteration
+        escaped = np.abs(zeros) > 2  # check where the magnitude exceeds 2
+        newlyEscaped = mask & escaped  # find newly escaped points
+        escapeTimes[newlyEscaped] = i  # set escape times for new points
+        mask[newlyEscaped] = False  # get rid of the points
+
+    # normalize
+    colors = (max_iterations - escapeTimes + 1) / (max_iterations + 1)
+
+    return colors.astype(float)
 
 def get_julia_color_arr(grid: np.ndarray, c: complex, max_iterations: int) -> np.ndarray:
     """
@@ -61,4 +75,18 @@ def get_julia_color_arr(grid: np.ndarray, c: complex, max_iterations: int) -> np
     :return: numpy array
     """
 
-    return None
+    z = np.copy(grid) #Grid for testing Julia set
+    escapeTimes = np.full(grid.shape, max_iterations + 1, dtype=int)
+    mask = np.ones(grid.shape, dtype=bool) #Tracks if points still in set
+
+    for i in range(max_iterations + 1):
+        z[mask] = z[mask] ** 2 + c #z = z^2 + c
+        escaped = np.abs(z) > 2 #checks escapes
+        newlyEscaped = mask & escaped #checks final escapes
+        escapeTimes[newlyEscaped] = i #iteration count
+        mask[newlyEscaped] = False # remove points
+
+    #normalize
+    colors = (max_iterations - escapeTimes + 1) / (max_iterations + 1)
+
+    return colors.astype(float)
