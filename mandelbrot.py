@@ -10,10 +10,10 @@ def get_escape_time(c: complex, max_iterations: int) -> int | None:
     :return: int or None
     """
     z = 0 #Iteration begins at z_0 = 0
-    for escape_val in range(0, max_iterations+1): #Runs loop from 0 to max_iterations
-        z = z**2 + c #Iteration
+    for k in range(max_iterations+1): #Runs loop from 0 to max_iterations (inclusive)
+        z = z**2 + c
         if abs(z) > 2: #If value escapes
-            return escape_val
+            return k
     return None #If value never escapes
 
 def get_complex_grid(top_left: complex, bottom_right: complex, step: float) -> np.ndarray:
@@ -32,12 +32,11 @@ def get_complex_grid(top_left: complex, bottom_right: complex, step: float) -> n
     row_end = bottom_right.imag
 
     real_range = np.arange(col_start, col_end, step) #range of real numbers
-    imaginary_range = np.arange(row_start, row_end, -step) #range of imaginary numbers
+    imag_range = np.arange(row_start, row_end, -step) #range of imaginary numbers
 
-    real_arr, imaginary_arr = np.meshgrid(real_range, imaginary_range) #creates grid with both real and imaginary
-    complex_grid = real_arr + 1j * imaginary_arr
+    real_arr, imag_arr = np.meshgrid(real_range, imag_range) #creates grid with both real and imaginary
+    return real_arr + 1j * imag_arr #Generated complex grid
 
-    return complex_grid
 
 def get_escape_time_color_arr(c_arr: np.ndarray, max_iterations: int) -> np.ndarray:
     """
@@ -47,21 +46,19 @@ def get_escape_time_color_arr(c_arr: np.ndarray, max_iterations: int) -> np.ndar
     :param max_iterations: int
     :return: numpy array
     """
-    #make zero array and alk the other supporting arrays
+    #make zero array and the other supporting arrays
     zeros = np.zeros_like(c_arr, dtype=complex)
-    escapeTimes = np.full(c_arr.shape, max_iterations + 1, dtype=int)
+    escape_times = np.full(c_arr.shape, max_iterations + 1, dtype=int)
     mask = np.ones(c_arr.shape, dtype=bool)
 
     for i in range(max_iterations + 1):
         zeros[mask] = zeros[mask] ** 2 + c_arr[mask]  #apply the mandelbrot iteration
-        escaped = np.abs(zeros) > 2  #check where the magnitude exceeds 2
-        newlyEscaped = mask & escaped  #find newly escaped points
-        escapeTimes[newlyEscaped] = i  #set escape times for new points
-        mask[newlyEscaped] = False  #get rid of the points
+        newly_escaped = mask & (np.abs(zeros) > 2 )  #find newly escaped points
+        escape_times[newly_escaped] = i  #set escape times for new points
+        mask[newly_escaped] = False  #get rid of the points
 
     #normalize
-    colors = (max_iterations - escapeTimes + 1) / (max_iterations + 1)
-
+    colors = (max_iterations - escape_times + 1) / (max_iterations + 1)
     return colors.astype(float)
 
 
@@ -77,17 +74,15 @@ def get_julia_color_arr(grid: np.ndarray, c: complex, max_iterations: int) -> np
     """
 
     z = np.copy(grid) #Grid for testing Julia set
-    escapeTimes = np.full(grid.shape, max_iterations + 1, dtype=int)
+    escape_times = np.full(grid.shape, max_iterations + 1, dtype=int)
     mask = np.ones(grid.shape, dtype=bool) #Tracks if points still in set
 
     for i in range(max_iterations + 1):
         z[mask] = z[mask] ** 2 + c #z = z^2 + c
-        escaped = np.abs(z) > 2 #checks escapes
-        newlyEscaped = mask & escaped #checks final escapes
-        escapeTimes[newlyEscaped] = i #iteration count
-        mask[newlyEscaped] = False # remove points
+        newly_escaped = mask & (np.abs(z) > 2) #checks final escapes
+        escape_times[newly_escaped] = i #iteration count
+        mask[newly_escaped] = False # remove points
 
     #normalize
-    colors = (max_iterations - escapeTimes + 1) / (max_iterations + 1)
-
+    colors = (max_iterations - escape_times + 1) / (max_iterations + 1)
     return colors.astype(float)
